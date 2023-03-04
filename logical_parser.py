@@ -4,10 +4,14 @@ from collections import OrderedDict
 import itertools
 import pandas as pd
 
-OPERATORS = ['&', '|', '~', '==', '->']
+OPERATORS = ['&', '|', '~', '->', '!', '↑', '↓', '^']
 VARIABLES = []
+INSTRUCTION = "Введите логическое выражение, используя следующие обозначения:\n" \
+              "! - НЕ\n& - ИЛИ\n| - И\n~ - Эквивалентность\n-> - Импликация\n" \
+              "↑ - Штрих Шеффера\n↓ - Стрелка Пирса\n^ - Исключающее ИЛИ(XOR)"
 
 expression_array_old = OrderedDict()
+
 
 class Element:
     """Класс элемента. Элемент может быть оператором либо выражением"""
@@ -36,31 +40,49 @@ def gen_results(templates: dict) -> OrderedDict:
         if exp.type == "operator":
             exp.type = "expression"
             match exp.value:
-                case "~":
-                    exp.mask = f"~({expression_array[i - 1].mask})"
+                case "!":  # НЕ
+                    exp.mask = f"!({expression_array[i - 1].mask})"
                     exp.value = int(not expression_array[i - 1].value)
                     expression_array.pop(i - 1)
-                case "&":
+                case "&":  # И
                     exp.mask = f"({expression_array[i - 2].mask})&({expression_array[i - 1].mask})"
                     exp.value = expression_array[i - 2].value and expression_array[i - 1].value
                     expression_array.pop(i - 1)
                     expression_array.pop(i - 2)
                     i -= 1
-                case "|":
+                case "|":  # ИЛИ
                     exp.mask = f"({expression_array[i - 2].mask})|({expression_array[i - 1].mask})"
                     exp.value = expression_array[i - 2].value or expression_array[i - 1].value
                     expression_array.pop(i - 1)
                     expression_array.pop(i - 2)
                     i -= 1
-                case "->":
+                case "->":  # Импликация
                     exp.mask = f"({expression_array[i - 2].mask})->({expression_array[i - 1].mask})"
                     exp.value = int(not(expression_array[i - 2].value) or expression_array[i - 1].value)
                     expression_array.pop(i - 1)
                     expression_array.pop(i - 2)
                     i -= 1
-                case "==":
-                    exp.mask = f"({expression_array[i - 2].mask})==({expression_array[i - 1].mask})"
+                case "~":  # Эквивалентность
+                    exp.mask = f"({expression_array[i - 2].mask})~({expression_array[i - 1].mask})"
                     exp.value = int(expression_array[i - 2].value == expression_array[i - 1].value)
+                    expression_array.pop(i - 1)
+                    expression_array.pop(i - 2)
+                    i -= 1
+                case '↑':  # Штрих Шеффера
+                    exp.mask = f"({expression_array[i - 2].mask})↑({expression_array[i - 1].mask})"
+                    exp.value = int(not(expression_array[i - 2].value and expression_array[i - 1].value))
+                    expression_array.pop(i - 1)
+                    expression_array.pop(i - 2)
+                    i -= 1
+                case '↓':  # Стрелка Пирса
+                    exp.mask = f"({expression_array[i - 2].mask})↓({expression_array[i - 1].mask})"
+                    exp.value = int(not (expression_array[i - 2].value or expression_array[i - 1].value))
+                    expression_array.pop(i - 1)
+                    expression_array.pop(i - 2)
+                    i -= 1
+                case '^':  # XOR
+                    exp.mask = f"({expression_array[i - 2].mask})^({expression_array[i - 1].mask})"
+                    exp.value = int(expression_array[i - 2].value ^ expression_array[i - 1].value)
                     expression_array.pop(i - 1)
                     expression_array.pop(i - 2)
                     i -= 1
@@ -72,16 +94,20 @@ def gen_results(templates: dict) -> OrderedDict:
     return ress
 
 
-def op_prior(o):
-    if o == '~':
+def op_prior(o: str) -> int:
+    """Приоритет операций
+    :param o: Оператор
+    :return: Уровень оператора. Чем выше, тем раньше выполняется
+    """
+    if o == '!':
         return 4
-    elif o == '&':
+    elif o == '&' or o == '↑':
         return 3
-    elif o == '|':
+    elif o == '|' or o == '^' or o == '↓':
         return 2
     elif o == '->':
         return 1
-    elif o == '==':
+    elif o == '~':
         return 1
 
 
@@ -100,39 +126,46 @@ def opn(expr: str) -> list:
         elif i in OPERATORS:  # i - операция
             token_tmp = ''  # смотрим на вверх стека
             if len(op_steck) > 0:
-                token_tmp = op_steck[len(op_steck) - 1]  # смотрим на вверх стека
-                while (len(op_steck) > 0 and token_tmp != '('):  # пока стек >0
+                token_tmp = op_steck[-1]  # смотрим на вверх стека
+                while len(op_steck) > 0 and token_tmp != '(':  # пока стек >0
                     if (op_prior(i) <= op_prior(
                             token_tmp)):  # сравнием приоритет токена в строке и приоритет операции в стеке операций
                         co.append(op_steck.pop())  # если в стеке операция выше, то выталкиваем его в выходную строку
                     else:  # иначе выходим из данного цикла
                         break
+                    if len(op_steck):
+                        token_tmp = op_steck[-1]
             op_steck.append(i)  # тогда выйдя из цикла, добавим операцию в стек
         elif i == '(':  # открывающая (
             op_steck.append(i)  # в стек
         elif i == ')':  # закрывающая )
-            token_tmp = op_steck[len(op_steck) - 1]  # смотрим на вверх стека
+            token_tmp = op_steck[-1]  # смотрим на вверх стека
             while token_tmp != '(':  # пока не встретим открывающую скобку
                 co.append(
                     op_steck.pop())  # выталкиваем операторы в выходную строку-раз мы работаем с группированием чисел-со скобками
-                token_tmp = op_steck[len(op_steck) - 1]  # смотрим на вверх стека внутри цикла
+                token_tmp = op_steck[-1]  # смотрим на вверх стека внутри цикла
                 if len(op_steck) == 0:
-                    raise RuntimeError('V virajenii propushena (')
+                    raise RuntimeError('Пропущена (')
                 if token_tmp == '(':
                     op_steck.pop()
 
-    while (len(op_steck) > 0):  # мы должны вытолкнуть оставшиеся операторы
+    while len(op_steck) > 0:  # мы должны вытолкнуть оставшиеся операторы
         token_tmp = op_steck[len(op_steck) - 1]
         co.append(op_steck.pop())
         if token_tmp == '(':
-            raise RuntimeError('V virajenii propushena )')
+            raise RuntimeError('Пропущена )')
     return co  # вернем постфиксную запись
 
 
-def to_expression_array(simple_string: list):
+def to_expression_array(simple_string: list) -> OrderedDict:
+    """
+    Перевод из постфиксной записи в словарь с результатами
+    :param simple_string: Строка с выражением в постфиксной форме записи
+    :return: Упорядоченный словарь с результатами
+    """
     global VARIABLES, expression_array_old
     for i in range(ord("a"), ord("z") + 1):
-        if chr(i) in simple_string:
+        if chr(i) in simple_string and i not in VARIABLES:
             VARIABLES.append(chr(i))
 
     expression_array = []
@@ -161,7 +194,10 @@ def to_expression_array(simple_string: list):
 
 
 if __name__ == "__main__":
-    simple_str = opn(input())
+    print(INSTRUCTION)
+    #simple_str = opn(input())
+    # simple_str = opn("( x & y & ! w ) | ( x & y & z & ! w ) | ( x & ! y & ! z & ! w )")
+    simple_str = opn("( x & y & ! w ) | ( x & y & z & ! w ) | ( x & ! y & ! z & ! w )")
     print("\t", end="")
     results = to_expression_array(simple_str)
     for i in results[list(results.keys())[0]].keys():
@@ -178,8 +214,11 @@ if __name__ == "__main__":
     #print(*opn('~ a | b'))
 
 
-def table_data(start_str):
-    """Функция для использования в Jupiter Notebook"""
+def table_data(start_str: str) -> tuple[list, list]:
+    """Функция для использования в Jupiter Notebook
+    :param start_str: Строка с выражением в инфиксной форме
+    :return: Кортеж из списка с данными и списка с названием колонок
+    """
     simple_string = opn(start_str)
     results = to_expression_array(simple_string)
     table_data_array = []
@@ -197,4 +236,3 @@ def table_data(start_str):
         table_columns.append(i)
     pd.DataFrame(table_data_array, columns=table_columns)
     return table_data_array, table_columns
-

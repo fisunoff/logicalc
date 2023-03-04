@@ -25,6 +25,27 @@ class Element:
         self.mask = mask
 
 
+def get_new_mask(v1: str, v2: str or None, operator: str):
+    """
+    Строит новую запись так, чтобы минимизировать лишние скобки
+    :param v1: Левая часть
+    :param v2: Правая часть
+    :param operator: Символ оператора
+    :return:
+    """
+    if len(v1) == 1 and operator == "!":
+        return f"!{v1}"  # отрицание единственного элемента
+    if re.fullmatch("[a-z]" + f"[{operator}][a-z]" * (len(v1) // 2), v1)\
+            and re.fullmatch("[a-z]" + f"[{operator}][a-z]" * (len(v2) // 2), v2):
+        return f"{v1}{operator}{v2}"  # Если все операции одинаковые, то скобки не нужны
+    if len(v1) == 1:
+        return f"{v1}{operator}({v2})"
+    if len(v2) == 1:
+        return f"({v1}){operator}{v2}"
+    else:
+        return f"({v1}){operator}({v2})"
+
+
 def gen_results(templates: dict) -> OrderedDict:
     """
     Получение промежуточных и итоговых результатов для конкретной итерации
@@ -41,47 +62,47 @@ def gen_results(templates: dict) -> OrderedDict:
             exp.type = "expression"
             match exp.value:
                 case "!":  # НЕ
-                    exp.mask = f"!({expression_array[i - 1].mask})"
+                    exp.mask = get_new_mask(expression_array[i - 1].mask, None, "!")
                     exp.value = int(not expression_array[i - 1].value)
                     expression_array.pop(i - 1)
                 case "&":  # И
-                    exp.mask = f"({expression_array[i - 2].mask})&({expression_array[i - 1].mask})"
+                    exp.mask = get_new_mask(expression_array[i - 2].mask, expression_array[i - 1].mask, "&")
                     exp.value = expression_array[i - 2].value and expression_array[i - 1].value
                     expression_array.pop(i - 1)
                     expression_array.pop(i - 2)
                     i -= 1
                 case "|":  # ИЛИ
-                    exp.mask = f"({expression_array[i - 2].mask})|({expression_array[i - 1].mask})"
+                    exp.mask = get_new_mask(expression_array[i - 2].mask, expression_array[i - 1].mask, "|")
                     exp.value = expression_array[i - 2].value or expression_array[i - 1].value
                     expression_array.pop(i - 1)
                     expression_array.pop(i - 2)
                     i -= 1
                 case "->":  # Импликация
-                    exp.mask = f"({expression_array[i - 2].mask})->({expression_array[i - 1].mask})"
+                    exp.mask = get_new_mask(expression_array[i - 2].mask, expression_array[i - 1].mask, "->")
                     exp.value = int(not(expression_array[i - 2].value) or expression_array[i - 1].value)
                     expression_array.pop(i - 1)
                     expression_array.pop(i - 2)
                     i -= 1
                 case "~":  # Эквивалентность
-                    exp.mask = f"({expression_array[i - 2].mask})~({expression_array[i - 1].mask})"
+                    exp.mask = get_new_mask(expression_array[i - 2].mask, expression_array[i - 1].mask, "~")
                     exp.value = int(expression_array[i - 2].value == expression_array[i - 1].value)
                     expression_array.pop(i - 1)
                     expression_array.pop(i - 2)
                     i -= 1
                 case '↑':  # Штрих Шеффера
-                    exp.mask = f"({expression_array[i - 2].mask})↑({expression_array[i - 1].mask})"
+                    exp.mask = get_new_mask(expression_array[i - 2].mask, expression_array[i - 1].mask, "↑")
                     exp.value = int(not(expression_array[i - 2].value and expression_array[i - 1].value))
                     expression_array.pop(i - 1)
                     expression_array.pop(i - 2)
                     i -= 1
                 case '↓':  # Стрелка Пирса
-                    exp.mask = f"({expression_array[i - 2].mask})↓({expression_array[i - 1].mask})"
+                    exp.mask = get_new_mask(expression_array[i - 2].mask, expression_array[i - 1].mask, "↓")
                     exp.value = int(not (expression_array[i - 2].value or expression_array[i - 1].value))
                     expression_array.pop(i - 1)
                     expression_array.pop(i - 2)
                     i -= 1
                 case '^':  # XOR
-                    exp.mask = f"({expression_array[i - 2].mask})^({expression_array[i - 1].mask})"
+                    exp.mask = get_new_mask(expression_array[i - 2].mask, expression_array[i - 1].mask, "^")
                     exp.value = int(expression_array[i - 2].value ^ expression_array[i - 1].value)
                     expression_array.pop(i - 1)
                     expression_array.pop(i - 2)
@@ -130,7 +151,6 @@ def opn(expr: str) -> list:
         if i.isdigit() or i.isalpha():  # i-число или буква
             co.append(i)  # в стек
         elif i in OPERATORS:  # i - операция
-            token_tmp = ''  # смотрим на вверх стека
             if len(op_steck) > 0:
                 token_tmp = op_steck[-1]  # смотрим на вверх стека
                 while len(op_steck) > 0 and token_tmp != '(':  # пока стек >0
@@ -147,8 +167,8 @@ def opn(expr: str) -> list:
         elif i == ')':  # закрывающая )
             token_tmp = op_steck[-1]  # смотрим на вверх стека
             while token_tmp != '(':  # пока не встретим открывающую скобку
-                co.append(
-                    op_steck.pop())  # выталкиваем операторы в выходную строку-раз мы работаем с группированием чисел-со скобками
+                co.append(op_steck.pop())
+                # выталкиваем операторы в выходную строку, раз мы работаем с группированием чисел со скобками
                 token_tmp = op_steck[-1]  # смотрим на вверх стека внутри цикла
                 if len(op_steck) == 0:
                     raise RuntimeError('Пропущена (')
@@ -156,11 +176,11 @@ def opn(expr: str) -> list:
                     op_steck.pop()
 
     while len(op_steck) > 0:  # мы должны вытолкнуть оставшиеся операторы
-        token_tmp = op_steck[len(op_steck) - 1]
+        token_tmp = op_steck[-1]
         co.append(op_steck.pop())
         if token_tmp == '(':
             raise RuntimeError('Пропущена )')
-    return co  # вернем постфиксную запись
+    return co
 
 
 def to_expression_array(simple_string: list) -> OrderedDict:
@@ -199,32 +219,13 @@ def to_expression_array(simple_string: list) -> OrderedDict:
     return results
 
 
-if __name__ == "__main__":
-    print(INSTRUCTION)
-    #simple_str = opn(input())
-    # simple_str = opn("( x & y & ! w ) | ( x & y & z & ! w ) | ( x & ! y & ! z & ! w )")
-    simple_str = opn("(x&y&!w)|(x&y&z&!w) | (x& ! y&!z & !w )")
-    print("\t", end="")
-    results = to_expression_array(simple_str)
-    for i in results[list(results.keys())[0]].keys():
-        print(f"\t{i}", end="")
-    print()
-
-    for i, values in zip(results.keys(), results.values()):
-        print(f"{i}\t", end="")
-        for elem in values.values():
-            print(f"{elem}\t\t", end="")
-        print()
-
-    print(simple_str)
-    #print(*opn('~ a | b'))
-
-
 def table_data(start_str: str) -> tuple[list, list]:
     """Функция для использования в Jupiter Notebook
     :param start_str: Строка с выражением в инфиксной форме
     :return: Кортеж из списка с данными и списка с названием колонок
     """
+    global VARIABLES
+    VARIABLES = []
     simple_string = opn(start_str)
     results = to_expression_array(simple_string)
     table_data_array = []
@@ -242,3 +243,25 @@ def table_data(start_str: str) -> tuple[list, list]:
         table_columns.append(i)
     pd.DataFrame(table_data_array, columns=table_columns)
     return table_data_array, table_columns
+
+
+if __name__ == "__main__":
+    print(INSTRUCTION)
+    #simple_str = opn(input())
+    # simple_str = opn("( x & y & ! w ) | ( x & y & z & ! w ) | ( x & ! y & ! z & ! w )")
+    simple_str = opn("(b↓a)")
+
+    print("\t", end="")
+    results = to_expression_array(simple_str)
+    for i in results[list(results.keys())[0]].keys():
+        print(f"\t{i}", end="")
+    print()
+
+    for i, values in zip(results.keys(), results.values()):
+        print(f"{i}\t", end="")
+        for elem in values.values():
+            print(f"{elem}\t\t", end="")
+        print()
+
+    print(simple_str)
+

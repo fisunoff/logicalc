@@ -119,8 +119,14 @@ def opn(expr: str) -> list:
     """
     co = []  # выходная строка
     op_steck = []  # стек операторов
+    n = 0
+    while n < len(expr) - 1:  # вставляем недостающие пробелы
+        if (expr[n].isalpha() or expr[n] in ['&', '|', '~', '>', '!', '↑', '↓', '^', '(', ')']) and expr[n + 1] != " ":
+            expr = expr[:n + 1] + ' ' + expr[n + 1:]
+        n += 1
+
     list_tokens = re.split('[ ]+', expr)  # разбиваем в список по пробелам
-    for i in list_tokens:  # цикл по списку- i елемент число,() или знак операции
+    for i in list_tokens:  # цикл по списку- i элемент число,() или знак операции
         if i.isdigit() or i.isalpha():  # i-число или буква
             co.append(i)  # в стек
         elif i in OPERATORS:  # i - операция
@@ -197,7 +203,7 @@ if __name__ == "__main__":
     print(INSTRUCTION)
     #simple_str = opn(input())
     # simple_str = opn("( x & y & ! w ) | ( x & y & z & ! w ) | ( x & ! y & ! z & ! w )")
-    simple_str = opn("( x & y & ! w ) | ( x & y & z & ! w ) | ( x & ! y & ! z & ! w )")
+    simple_str = opn("(x&y&!w)|(x&y&z&!w) | (x& ! y&!z & !w )")
     print("\t", end="")
     results = to_expression_array(simple_str)
     for i in results[list(results.keys())[0]].keys():

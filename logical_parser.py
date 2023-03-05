@@ -219,11 +219,13 @@ def to_expression_array(simple_string: list) -> OrderedDict:
     return results
 
 
-def table_data(start_str: str) -> tuple[list, list]:
+def table_data(start_str: str) -> tuple[list, list] | tuple[bool, str]:
     """Функция для использования в Jupiter Notebook
     :param start_str: Строка с выражением в инфиксной форме
-    :return: Кортеж из списка с данными и списка с названием колонок
+    :return: Кортеж из списка с данными и списка с названием колонок или ошибку
     """
+    if not re.fullmatch("[a-z&|^~>!↑↓()\- ]{1,}", start_str):
+        return False, "Некорректная запись(недопустимые символы)"
     global VARIABLES
     VARIABLES = []
     simple_string = opn(start_str)
@@ -249,8 +251,12 @@ if __name__ == "__main__":
     print(INSTRUCTION)
     #simple_str = opn(input())
     # simple_str = opn("( x & y & ! w ) | ( x & y & z & ! w ) | ( x & ! y & ! z & ! w )")
-    simple_str = opn("(b↓a)")
+    start_str = input()
 
+    while not re.fullmatch("[a-z&|^~>!↑↓()\- ]{1,}", start_str):
+        print("Некорректная запись(недопустимые символы)")
+        start_str = input("Повторите ввод:")
+    simple_str = opn(start_str)
     print("\t", end="")
     results = to_expression_array(simple_str)
     for i in results[list(results.keys())[0]].keys():

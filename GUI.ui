@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>1089</width>
-    <height>773</height>
+    <height>825</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Таблица истинности пошагово</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QWidget" name="verticalLayoutWidget">
@@ -70,6 +70,9 @@
            <pointsize>14</pointsize>
           </font>
          </property>
+         <property name="toolTip">
+          <string>И</string>
+         </property>
          <property name="text">
           <string>∧</string>
          </property>
@@ -81,6 +84,9 @@
           <font>
            <pointsize>14</pointsize>
           </font>
+         </property>
+         <property name="toolTip">
+          <string>ИЛИ</string>
          </property>
          <property name="text">
           <string>|</string>
@@ -94,6 +100,9 @@
            <pointsize>14</pointsize>
           </font>
          </property>
+         <property name="toolTip">
+          <string>Эквивалентность</string>
+         </property>
          <property name="text">
           <string>~</string>
          </property>
@@ -105,6 +114,9 @@
           <font>
            <pointsize>14</pointsize>
           </font>
+         </property>
+         <property name="toolTip">
+          <string>Импликация</string>
          </property>
          <property name="text">
           <string>-&gt;</string>
@@ -118,6 +130,9 @@
            <pointsize>14</pointsize>
           </font>
          </property>
+         <property name="toolTip">
+          <string>НЕ</string>
+         </property>
          <property name="text">
           <string>!</string>
          </property>
@@ -130,6 +145,9 @@
            <pointsize>14</pointsize>
           </font>
          </property>
+         <property name="toolTip">
+          <string>Штрих Шеффера</string>
+         </property>
          <property name="text">
           <string>↑</string>
          </property>
@@ -141,6 +159,9 @@
           <font>
            <pointsize>14</pointsize>
           </font>
+         </property>
+         <property name="toolTip">
+          <string>Стрелка Пирса</string>
          </property>
          <property name="text">
           <string>↓</string>
@@ -159,6 +180,30 @@
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QPushButton" name="btn_sdnf">
+         <property name="font">
+          <font>
+           <pointsize>14</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>СДНФ</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_sknf">
+         <property name="font">
+          <font>
+           <pointsize>14</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>СКНФ</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
     </layout>
@@ -166,11 +211,32 @@
    <widget class="QTableWidget" name="table">
     <property name="geometry">
      <rect>
-      <x>9</x>
+      <x>10</x>
       <y>110</y>
       <width>1071</width>
       <height>621</height>
      </rect>
+    </property>
+    <property name="alternatingRowColors">
+     <bool>true</bool>
+    </property>
+    <property name="sortingEnabled">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QTextBrowser" name="text_normal_form">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>740</y>
+      <width>1071</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
     </property>
    </widget>
   </widget>

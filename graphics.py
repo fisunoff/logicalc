@@ -1,5 +1,6 @@
 import sys
 from PyQt5 import QtWidgets
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox
 import logical_parser
 from gui import Ui_MainWindow
@@ -10,9 +11,13 @@ class MyWindow(QtWidgets.QMainWindow):
         super(MyWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.expression = None
 
         # кнопка РЕШИТЬ
         self.ui.btn_go.clicked.connect(self.btn_clicked)
+
+        self.ui.btn_sdnf.clicked.connect(lambda: self.print_normal_form("sdnf"))
+        self.ui.btn_sknf.clicked.connect(lambda: self.print_normal_form("sknf"))
 
         # Кнопки, добавляющие операторы в строку
         self.ui.btn_and.clicked.connect(lambda: self.add_sign("&"))
@@ -27,14 +32,22 @@ class MyWindow(QtWidgets.QMainWindow):
 
     def btn_clicked(self):
         try:
-            data, headers = logical_parser.table_data(self.ui.lineEdit.text())
+            exp_line = self.ui.lineEdit.text()
+            self.expression = logical_parser.Expression(exp_line)
+            data, headers = self.expression.get_truth_table()
             if data:
                 self.ui.table.setColumnCount(len(headers))
                 self.ui.table.setRowCount(len(data))
                 self.ui.table.setHorizontalHeaderLabels(headers)
                 for i, row in zip(range(len(data)), data):
+                    result = row[-1]
                     for j, elem in zip(range(len(row)), row):
                         self.ui.table.setItem(i, j, QTableWidgetItem(f"{elem}"))
+                        if j == len(row) - 1:
+                            self.ui.table.item(i, j).setBackground(QColor('#98fb98'))
+                        if result:  # другой цвет для значений True в ответе
+                            self.ui.table.item(i, j).setBackground(QColor('#ffffad'))
+
             else:
                 self.ui.table.setColumnCount(1)
                 self.ui.table.setRowCount(1)
@@ -46,11 +59,20 @@ class MyWindow(QtWidgets.QMainWindow):
     def add_sign(self, symbol: str):
         self.ui.lineEdit.insert(symbol)
 
+    def print_normal_form(self, form_type: str):
+        if form_type == "sdnf":
+            text = self.expression.get_sdnf()
+        elif form_type == "sknf":
+            text = self.expression.get_sknf()
+        else:
+            text = "error"
+        self.ui.text_normal_form.setPlainText(text)
+
     def show_dialog(self):
         fname = QtWidgets.QFileDialog.getSaveFileName(self)[0]
         if fname:
             try:
-                data, headers = logical_parser.table_data(self.ui.lineEdit.text())
+                data, headers = self.expression.get_truth_table()
                 f = open(fname, "w")
                 for i in headers:
                     f.write(f"{i};")

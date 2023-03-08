@@ -25,8 +25,8 @@ class MyWindow(QtWidgets.QMainWindow):
         self.ui.btn_eq.clicked.connect(lambda: self.add_sign("~"))
         self.ui.btn_imp.clicked.connect(lambda: self.add_sign("->"))
         self.ui.btn_not.clicked.connect(lambda: self.add_sign("!"))
-        self.ui.btn_pirs.clicked.connect(lambda: self.add_sign("↑"))
-        self.ui.btn_sh.clicked.connect(lambda: self.add_sign("↓"))
+        self.ui.btn_pirs.clicked.connect(lambda: self.add_sign("↓"))
+        self.ui.btn_sh.clicked.connect(lambda: self.add_sign("↑"))
         self.ui.btn_xor.clicked.connect(lambda: self.add_sign("^"))
         self.ui.btn_to_csv.clicked.connect(self.show_dialog)
 

@@ -130,6 +130,20 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.lineEdit, self.btn_go)
+        MainWindow.setTabOrder(self.btn_go, self.btn_to_csv)
+        MainWindow.setTabOrder(self.btn_to_csv, self.btn_and)
+        MainWindow.setTabOrder(self.btn_and, self.btn_or)
+        MainWindow.setTabOrder(self.btn_or, self.btn_eq)
+        MainWindow.setTabOrder(self.btn_eq, self.btn_imp)
+        MainWindow.setTabOrder(self.btn_imp, self.btn_not)
+        MainWindow.setTabOrder(self.btn_not, self.btn_sh)
+        MainWindow.setTabOrder(self.btn_sh, self.btn_pirs)
+        MainWindow.setTabOrder(self.btn_pirs, self.btn_xor)
+        MainWindow.setTabOrder(self.btn_xor, self.btn_sdnf)
+        MainWindow.setTabOrder(self.btn_sdnf, self.btn_sknf)
+        MainWindow.setTabOrder(self.btn_sknf, self.table)
+        MainWindow.setTabOrder(self.table, self.text_normal_form)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate

@@ -252,6 +252,23 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit</tabstop>
+  <tabstop>btn_go</tabstop>
+  <tabstop>btn_to_csv</tabstop>
+  <tabstop>btn_and</tabstop>
+  <tabstop>btn_or</tabstop>
+  <tabstop>btn_eq</tabstop>
+  <tabstop>btn_imp</tabstop>
+  <tabstop>btn_not</tabstop>
+  <tabstop>btn_sh</tabstop>
+  <tabstop>btn_pirs</tabstop>
+  <tabstop>btn_xor</tabstop>
+  <tabstop>btn_sdnf</tabstop>
+  <tabstop>btn_sknf</tabstop>
+  <tabstop>table</tabstop>
+  <tabstop>text_normal_form</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

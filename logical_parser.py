@@ -83,6 +83,8 @@ class Expression:
         """
         if len(v1) == 1 and operator == "!":
             return f"!{v1}"  # отрицание единственного элемента
+        if not v2 and operator == "!":
+            return f"!({v1})"
         if re.fullmatch("[a-z]" + f"[{operator}][a-z]" * (len(v1) // 2), v1)\
                 and re.fullmatch("[a-z]" + f"[{operator}][a-z]" * (len(v2) // 2), v2):
             return f"{v1}{operator}{v2}"  # Если все операции одинаковые, то скобки не нужны
